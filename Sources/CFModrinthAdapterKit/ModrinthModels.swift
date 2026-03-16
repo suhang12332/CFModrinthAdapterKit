@@ -29,7 +29,6 @@ public struct ModrinthProject: Codable {
         case license
         case clientSide = "client_side"
         case serverSide = "server_side"
-        case fileName
     }
 
     public init(
