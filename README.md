@@ -29,36 +29,6 @@
 .product(name: "CFModrinthAdapterKit", package: "CFModrinthAdapterKit")
 ```
 
-## 使用示例
-
-### CurseForge → Modrinth
-
-```swift
-import CFModrinthAdapterKit
-
-let modrinthDetail = CFToModrinthAdapter.convertProjectDetail(cfDetail, descriptionHTML: html)
-let modrinthVersion = CFToModrinthAdapter.convertFile(cfFileDetail, projectId: "cf-\(cfProjectId)")
-let modrinthSearch = CFToModrinthAdapter.convertSearchResult(cfSearchResult)
-```
-
-### Modrinth 搜索参数 → CurseForge 搜索参数
-
-```swift
-import CFModrinthAdapterKit
-
-let params = ModrinthToCurseForgeSearchAdapter.convertToSearchParams(
-    projectType: "mod",
-    versions: ["1.20.1"],
-    categories: ["technology"],
-    resolutions: [],
-    loaders: ["fabric"],
-    query: "sodium"
-)
-
-// params.classId / params.categoryIds / params.gameVersions / params.modLoaderTypes / params.searchFilter
-// 可用于你自己的网络层去拼 CurseForge API 的查询字符串
-```
-
 ## 说明
 
 - 本包只负责“模型与参数的适配/转换”，不包含具体网络请求实现。
