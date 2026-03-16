@@ -617,7 +617,7 @@ public struct ModrinthMinecraftJavaServerContent: Codable, Hashable, Equatable {
 public struct ModrinthMinecraftJavaServerPing: Codable, Hashable, Equatable {
     public let when: Date
     public let address: String
-    public let data: ModrinthMinecraftJavaServerPingData
+    public let data: ModrinthMinecraftJavaServerPingData?
 }
 
 public struct ModrinthMinecraftJavaServerPingData: Codable, Hashable, Equatable {
