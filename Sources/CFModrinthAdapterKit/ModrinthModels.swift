@@ -29,6 +29,7 @@ public struct ModrinthProject: Codable {
         case license
         case clientSide = "client_side"
         case serverSide = "server_side"
+        case fileName
     }
 
     public init(
@@ -47,7 +48,6 @@ public struct ModrinthProject: Codable {
         license: String,
         clientSide: String,
         serverSide: String,
-        fileName: String?
     ) {
         self.projectId = projectId
         self.projectType = projectType
@@ -64,7 +64,6 @@ public struct ModrinthProject: Codable {
         self.license = license
         self.clientSide = clientSide
         self.serverSide = serverSide
-        self.fileName = fileName
     }
 }
 
