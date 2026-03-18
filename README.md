@@ -11,24 +11,5 @@
   - 将 Modrinth 风格的搜索参数映射为 CurseForge API 可用的搜索参数
   - 入口：`ModrinthToCurseForgeSearchAdapter`
 
-## 环境要求
 
-- Swift tools version：6.1（见 `Package.swift`）
-
-## 安装（Swift Package Manager）
-
-在 Xcode 里添加 Package Dependency，指向本仓库地址；或在 `Package.swift` 中加入依赖（示例中的 URL 请替换为你的仓库地址）：
-
-```swift
-.package(url: "https://example.com/CFModrinthAdapterKit.git", from: "0.1.0")
-```
-
-然后在 target 里添加：
-
-```swift
-.product(name: "CFModrinthAdapterKit", package: "CFModrinthAdapterKit")
-```
-
-## 说明
-
-- 本包只负责“模型与参数的适配/转换”，不包含具体网络请求实现。
+- 本包只负责“模型与参数的适配/转换”，不包含具体网络请求实现。 本包服务于 [Swift Craft Launcher](https://github.com/suhang12332/Swift-Craft-Launcher)
