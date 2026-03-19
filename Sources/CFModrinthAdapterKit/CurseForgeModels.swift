@@ -345,23 +345,23 @@ public struct CurseForgeIndexInfo {
 
 // MARK: Fingerprints Models
 
-private struct CurseForgeFingerprintMatchesRequest: Codable {
+public struct CurseForgeFingerprintMatchesRequest: Codable {
     let fingerprints: [UInt32]
 }
 
-private struct CurseForgeFingerprintMatchesResponse: Codable {
+public struct CurseForgeFingerprintMatchesResponse: Codable {
     let data: CurseForgeFingerprintMatchesData
 }
 
-private struct CurseForgeFingerprintMatchesData: Codable {
+public struct CurseForgeFingerprintMatchesData: Codable {
     let exactMatches: [CurseForgeFingerprintMatch]?
     let partialMatches: [CurseForgeFingerprintMatch]?
 }
 
-private struct CurseForgeFingerprintMatch: Codable {
+public struct CurseForgeFingerprintMatch: Codable {
     let file: CurseForgeFingerprintFile?
 }
 
-private struct CurseForgeFingerprintFile: Codable {
+public struct CurseForgeFingerprintFile: Codable {
     let modId: Int
 }
