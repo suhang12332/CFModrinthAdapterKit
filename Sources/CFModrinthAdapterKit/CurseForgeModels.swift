@@ -342,3 +342,26 @@ public struct CurseForgeIndexInfo {
     public let files: [CurseForgeManifestFile]
     public let overridesPath: String?
 }
+
+// MARK: Fingerprints Models
+
+private struct CurseForgeFingerprintMatchesRequest: Codable {
+    let fingerprints: [UInt32]
+}
+
+private struct CurseForgeFingerprintMatchesResponse: Codable {
+    let data: CurseForgeFingerprintMatchesData
+}
+
+private struct CurseForgeFingerprintMatchesData: Codable {
+    let exactMatches: [CurseForgeFingerprintMatch]?
+    let partialMatches: [CurseForgeFingerprintMatch]?
+}
+
+private struct CurseForgeFingerprintMatch: Codable {
+    let file: CurseForgeFingerprintFile?
+}
+
+private struct CurseForgeFingerprintFile: Codable {
+    let modId: Int
+}
