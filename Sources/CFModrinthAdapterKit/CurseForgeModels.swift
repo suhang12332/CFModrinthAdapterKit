@@ -346,22 +346,46 @@ public struct CurseForgeIndexInfo {
 // MARK: Fingerprints Models
 
 public struct CurseForgeFingerprintMatchesRequest: Codable {
-    let fingerprints: [UInt32]
+    public let fingerprints: [UInt32]
+
+    public init(fingerprints: [UInt32]) {
+        self.fingerprints = fingerprints
+    }
 }
 
 public struct CurseForgeFingerprintMatchesResponse: Codable {
-    let data: CurseForgeFingerprintMatchesData
+    public let data: CurseForgeFingerprintMatchesData
+
+    public init(data: CurseForgeFingerprintMatchesData) {
+        self.data = data
+    }
 }
 
 public struct CurseForgeFingerprintMatchesData: Codable {
-    let exactMatches: [CurseForgeFingerprintMatch]?
-    let partialMatches: [CurseForgeFingerprintMatch]?
+    public let exactMatches: [CurseForgeFingerprintMatch]?
+    public let partialMatches: [CurseForgeFingerprintMatch]?
+
+    public init(
+        exactMatches: [CurseForgeFingerprintMatch]?,
+        partialMatches: [CurseForgeFingerprintMatch]?
+    ) {
+        self.exactMatches = exactMatches
+        self.partialMatches = partialMatches
+    }
 }
 
 public struct CurseForgeFingerprintMatch: Codable {
-    let file: CurseForgeFingerprintFile?
+    public let file: CurseForgeFingerprintFile?
+
+    public init(file: CurseForgeFingerprintFile?) {
+        self.file = file
+    }
 }
 
 public struct CurseForgeFingerprintFile: Codable {
-    let modId: Int
+    public let modId: Int
+
+    public init(modId: Int) {
+        self.modId = modId
+    }
 }
