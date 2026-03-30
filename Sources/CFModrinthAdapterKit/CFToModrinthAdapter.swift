@@ -340,15 +340,7 @@ public enum CFToModrinthAdapter {
             .appendingPathComponent(fileName)
     }
     private static func url(_ string: String) -> URL {
-        guard let url = URL(string: string) else {
-            // 使用 guard let 避免强制解包
-            guard let fallbackURL = URL(string: "https://localhost") else {
-                // 如果连 localhost 都失败，返回一个硬编码的 URL（这种情况理论上不应该发生）
-                return URL(string: "https://localhost") ?? URL(fileURLWithPath: "/")
-            }
-            return fallbackURL
-        }
-        return url
+        URL(string: string) ?? URL(string: "https://localhost")!
     }
 }
 
