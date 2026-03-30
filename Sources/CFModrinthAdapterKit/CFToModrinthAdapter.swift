@@ -192,7 +192,7 @@ public enum CFToModrinthAdapter {
         }
 
         // 下载 URL：优先使用 API 提供的 downloadUrl
-        let downloadUrl = cfFile.downloadUrl ?? ""
+        let downloadUrl = cfFile.downloadUrl ?? fallbackDownloadUrl(fileId: cfFile.id, fileName: cfFile.fileName).absoluteString
 
         // 提取哈希值：优先使用 hashes 数组，如果没有则使用 hash 字段
         let hashes: ModrinthVersionFileHashes
@@ -331,6 +331,24 @@ public enum CFToModrinthAdapter {
             return String(text.prefix(200)) + "..."
         }
         return text
+    }
+    static func fallbackDownloadUrl(fileId: Int, fileName: String) -> URL {
+        // 格式：https://edge.forgecdn.net/files/{fileId前三位}/{fileId后三位}/{fileName}
+        url("https://edge.forgecdn.net/files")
+            .appendingPathComponent("\(fileId / 1000)")
+            .appendingPathComponent("\(fileId % 1000)")
+            .appendingPathComponent(fileName)
+    }
+    private static func url(_ string: String) -> URL {
+        guard let url = URL(string: string) else {
+            // 使用 guard let 避免强制解包
+            guard let fallbackURL = URL(string: "https://localhost") else {
+                // 如果连 localhost 都失败，返回一个硬编码的 URL（这种情况理论上不应该发生）
+                return URL(string: "https://localhost") ?? URL(fileURLWithPath: "/")
+            }
+            return fallbackURL
+        }
+        return url
     }
 }
 
