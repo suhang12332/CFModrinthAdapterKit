@@ -384,8 +384,10 @@ public struct CurseForgeFingerprintMatch: Codable {
 
 public struct CurseForgeFingerprintFile: Codable {
     public let modId: Int
+    public let id: Int
 
-    public init(modId: Int) {
+    public init(modId: Int,id: Int) {
         self.modId = modId
+        self.id = id
     }
 }
