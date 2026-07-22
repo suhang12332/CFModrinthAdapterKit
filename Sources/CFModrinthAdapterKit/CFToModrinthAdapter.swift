@@ -293,7 +293,7 @@ public enum CFToModrinthAdapter {
                 title: cfMod.name,
                 description: cfMod.summary,
                 categories: cfMod.categories?.map { $0.slug } ?? [],
-                displayCategories: [],
+                displayCategories: cfMod.categories?.map { $0.slug } ?? [],
                 versions: versions,
                 downloads: cfMod.downloadCount ?? 0,
                 follows: 0,
