@@ -184,7 +184,7 @@ public enum CFToModrinthAdapter {
                 }
 
                 return ModrinthVersionDependency(
-                    projectId: String(dep.modId),
+                    projectId: "cf-\(dep.modId)",
                     versionId: nil,
                     dependencyType: dependencyType
                 )
