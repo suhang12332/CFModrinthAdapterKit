@@ -1,22 +1,22 @@
 import Foundation
 
-/// 提供纯数据层的 CurseForge -> Modrinth 转换工具
-/// 仅依赖本包内的模型类型，不依赖应用层工具或常量。
+/// Provides pure data-layer conversion utilities from CurseForge to Modrinth.
+/// Depends only on model types within this package; no application-layer constants or utilities.
 public enum CFToModrinthAdapter {
-    /// 将 CurseForge 项目详情转换为 Modrinth 项目详情格式
+
+    /// Converts a CurseForge mod detail to the Modrinth project detail format.
     /// - Parameters:
-    ///   - cf: CurseForge 项目详情
-    ///   - descriptionHTML: 从 description 接口获取的 HTML 描述内容（可选，如果提供则优先作为 body）
-    /// - Returns: Modrinth 格式的项目详情
+    ///   - cf: The CurseForge mod detail to convert.
+    ///   - descriptionHTML: An optional HTML description retrieved from the description endpoint.
+    ///     When provided, it takes precedence as the project body.
+    /// - Returns: A Modrinth project detail, or `nil` if conversion fails.
     public static func convertProjectDetail(
         _ cf: CurseForgeModDetail,
         descriptionHTML: String = ""
     ) -> ModrinthProjectDetail? {
-        // 日期解析器（ISO8601，带毫秒）
         let dateFormatter = ISO8601DateFormatter()
         dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 
-        // 解析日期
         let publishedDate: Date
         if let dateCreated = cf.dateCreated,
            let parsed = dateFormatter.date(from: dateCreated) {
@@ -33,14 +33,14 @@ public enum CFToModrinthAdapter {
             updatedDate = Date()
         }
 
-        // 提取游戏版本（从 latestFilesIndexes）
+        // Extract game versions from latestFilesIndexes
         var gameVersions: [String] = []
         if let indexes = cf.latestFilesIndexes {
             let allVersions = Set(indexes.map { $0.gameVersion })
             gameVersions = Array(allVersions)
         }
 
-        // 提取加载器（从 latestFilesIndexes）
+        // Extract loaders from latestFilesIndexes
         var loaders: [String] = []
         if let indexes = cf.latestFilesIndexes {
             let loaderTypes = Set(indexes.compactMap { $0.modLoader })
@@ -60,7 +60,7 @@ public enum CFToModrinthAdapter {
             }
         }
 
-        // 基于 classId 推断项目类型字符串（与主工程 ResourceType.rawValue 对应）
+        // Infer the project type string from classId
         let projectType: String
         switch cf.classId {
         case CurseForgeClassId.mods.rawValue:
@@ -77,7 +77,7 @@ public enum CFToModrinthAdapter {
             projectType = "mod"
         }
 
-        // 如果 loaders 为空，根据项目类型填充默认值
+        // Populate default loaders when none are present
         if loaders.isEmpty {
             if projectType == "resourcepack" {
                 loaders = ["minecraft"]
@@ -86,23 +86,23 @@ public enum CFToModrinthAdapter {
             }
         }
 
-        // 提取版本 ID 列表
+        // Extract version ID list
         var versions: [String] = []
         if let files = cf.latestFiles {
             versions = files.map { String($0.id) }
         }
 
-        // 提取分类
+        // Extract categories
         let categories = cf.categories.map { $0.slug }
 
-        // 提取图标 URL
+        // Extract icon URL
         let iconUrl = cf.logo?.url ?? cf.logo?.thumbnailUrl
 
-        // CurseForge 通常没有明确的许可证信息，这里给出占位
+        // CurseForge rarely provides explicit license information; use a placeholder
         let license = License(id: "unknown", name: "Unknown", url: nil)
 
-        // 使用 "cf-" 前缀标识 CurseForge 项目，避免与 Modrinth 项目混淆
-        // body 优先使用 HTML 描述，其次使用 body 字段，最后使用 summary
+        // Use a "cf-" prefix to distinguish CurseForge projects from Modrinth projects.
+        // The body prefers the HTML description, falls back to the body field, then to summary.
         let bodyContent = descriptionHTML.isEmpty ? (cf.body ?? cf.summary) : descriptionHTML
         let descriptionText = descriptionHTML.isEmpty
             ? cf.summary
@@ -138,11 +138,11 @@ public enum CFToModrinthAdapter {
         )
     }
 
-    /// 将 CurseForge 文件详情转换为 Modrinth 版本格式
+    /// Converts a CurseForge file detail to the Modrinth version format.
     /// - Parameters:
-    ///   - cfFile: CurseForge 文件详情
-    ///   - projectId: 项目 ID（可带或不带 "cf-" 前缀）
-    /// - Returns: Modrinth 格式的版本详情
+    ///   - cfFile: The CurseForge file detail to convert.
+    ///   - projectId: The project ID, with or without the "cf-" prefix.
+    /// - Returns: A Modrinth version detail, or `nil` if conversion fails.
     public static func convertFile(
         _ cfFile: CurseForgeModFileDetail,
         projectId: String
@@ -150,7 +150,6 @@ public enum CFToModrinthAdapter {
         let dateFormatter = ISO8601DateFormatter()
         dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 
-        // 解析发布日期
         let publishedDate: Date
         if !cfFile.fileDate.isEmpty,
            let parsed = dateFormatter.date(from: cfFile.fileDate) {
@@ -159,13 +158,13 @@ public enum CFToModrinthAdapter {
             publishedDate = Date()
         }
 
-        // 版本类型统一视为 release
+        // Treat all versions as release type
         let versionType = "release"
 
-        // 文件级别不推断加载器，保持空数组
+        // File-level conversion does not infer loaders; leave empty
         let loaders: [String] = []
 
-        // 转换依赖
+        // Convert dependencies
         var dependencies: [ModrinthVersionDependency] = []
         if let cfDeps = cfFile.dependencies {
             dependencies = cfDeps.compactMap { dep in
@@ -191,10 +190,10 @@ public enum CFToModrinthAdapter {
             }
         }
 
-        // 下载 URL：优先使用 API 提供的 downloadUrl
+        // Download URL: prefer the one provided by the API
         let downloadUrl = cfFile.downloadUrl ?? fallbackDownloadUrl(fileId: cfFile.id, fileName: cfFile.fileName).absoluteString
 
-        // 提取哈希值：优先使用 hashes 数组，如果没有则使用 hash 字段
+        // Extract hashes: prefer the hashes array, fall back to the single hash field
         let hashes: ModrinthVersionFileHashes
         if let hashesArray = cfFile.hashes, !hashesArray.isEmpty {
             let sha1Hash = hashesArray.first { $0.algo == 1 }
@@ -227,7 +226,7 @@ public enum CFToModrinthAdapter {
             )
         ]
 
-        // 确保 projectId 使用 "cf-" 前缀
+        // Ensure the project ID uses the "cf-" prefix
         let cleanId = projectId.replacingOccurrences(of: "cf-", with: "")
         let normalizedProjectId = "cf-\(cleanId)"
 
@@ -252,14 +251,14 @@ public enum CFToModrinthAdapter {
         )
     }
 
-    /// 将 CurseForge 搜索结果转换为 Modrinth 搜索结果
-    /// - Parameter cfResult: CurseForge 搜索结果
-    /// - Returns: Modrinth 格式的搜索结果
+    /// Converts a CurseForge search result to the Modrinth search result format.
+    /// - Parameter cfResult: The CurseForge search result to convert.
+    /// - Returns: A Modrinth-formatted search result.
     public static func convertSearchResult(
         _ cfResult: CurseForgeSearchResult
     ) -> ModrinthResult {
         let hits: [ModrinthProject] = cfResult.data.compactMap { cfMod in
-            // 确定项目类型
+            // Determine the project type
             let projectType: String
             if let classId = cfMod.classId,
                let type = CurseForgeClassId(rawValue: classId) {
@@ -279,7 +278,7 @@ public enum CFToModrinthAdapter {
                 projectType = "mod"
             }
 
-            // 提取版本 ID 列表
+            // Extract version ID list
             var versions: [String] = []
             if let files = cfMod.latestFiles {
                 versions = files.map { String($0.id) }
@@ -318,9 +317,9 @@ public enum CFToModrinthAdapter {
         )
     }
 
-    /// 从 HTML 内容中提取纯文本作为简短描述
-    /// - Parameter html: HTML 字符串
-    /// - Returns: 提取的纯文本（限制长度）
+    /// Extracts plain text from an HTML string for use as a short description.
+    /// - Parameter html: The HTML string to process.
+    /// - Returns: Plain text truncated to 200 characters.
     private static func extractPlainText(from html: String) -> String {
         let text = html
             .replacingOccurrences(of: "<[^>]+>", with: " ", options: .regularExpression)
@@ -332,15 +331,21 @@ public enum CFToModrinthAdapter {
         }
         return text
     }
+
+    /// Builds a fallback download URL for CurseForge files when the API does not provide one.
+    /// - Parameters:
+    ///   - fileId: The CurseForge file ID.
+    ///   - fileName: The original file name.
+    /// - Returns: A fully constructed download URL.
     static func fallbackDownloadUrl(fileId: Int, fileName: String) -> URL {
-        // 格式：https://edge.forgecdn.net/files/{fileId前三位}/{fileId后三位}/{fileName}
+        // Format: https://edge.forgecdn.net/files/{first3digits}/{last3digits}/{fileName}
         url("https://edge.forgecdn.net/files")
             .appendingPathComponent("\(fileId / 1000)")
             .appendingPathComponent("\(fileId % 1000)")
             .appendingPathComponent(fileName)
     }
+
     private static func url(_ string: String) -> URL {
         URL(string: string) ?? URL(string: "https://localhost")!
     }
 }
-
