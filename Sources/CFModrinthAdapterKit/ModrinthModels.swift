@@ -1,6 +1,6 @@
 import Foundation
 
-// Modrinth 项目模型
+/// Modrinth project summary model.
 public struct ModrinthProject: Codable {
     public let projectId: String
     public let projectType: String
@@ -69,6 +69,7 @@ public struct ModrinthProject: Codable {
     }
 }
 
+/// Modrinth project detail model.
 public struct ModrinthProjectDetail: Codable, Hashable, Equatable {
     public let slug: String
     public let title: String
@@ -183,7 +184,7 @@ public struct ModrinthProjectDetail: Codable, Hashable, Equatable {
     }
 }
 
-// Modrinth 搜索结果模型
+/// Modrinth search result model.
 public struct ModrinthResult: Codable {
     public let hits: [ModrinthProject]
     public let offset: Int
@@ -203,7 +204,7 @@ public struct ModrinthResult: Codable {
     }
 }
 
-// 游戏版本
+/// Modrinth game version model.
 public struct GameVersion: Codable, Identifiable, Hashable {
     public let version: String
     public let version_type: String
@@ -213,7 +214,7 @@ public struct GameVersion: Codable, Identifiable, Hashable {
     public var id: String { version }
 }
 
-// 加载器
+/// Modrinth mod loader model.
 public struct Loader: Codable, Identifiable {
     public let name: String
     public let icon: String
@@ -228,7 +229,7 @@ public struct Loader: Codable, Identifiable {
     }
 }
 
-// 分类
+/// Modrinth category model.
 public struct Category: Codable, Identifiable, Hashable {
     public let name: String
     public let project_type: String
@@ -237,7 +238,7 @@ public struct Category: Codable, Identifiable, Hashable {
     public var id: String { name }
 }
 
-// 许可证
+/// Modrinth license model.
 public struct License: Codable, Equatable, Hashable {
     public let id: String
     public let name: String
@@ -250,7 +251,7 @@ public struct License: Codable, Equatable, Hashable {
     }
 }
 
-/// Modrinth version model
+/// Modrinth version model.
 public struct ModrinthProjectDetailVersion: Codable, Identifiable, Equatable, Hashable {
     public let gameVersions: [String]
     public let loaders: [String]
@@ -329,7 +330,7 @@ public struct ModrinthProjectDetailVersion: Codable, Identifiable, Equatable, Ha
     }
 }
 
-/// Modrinth version file model
+/// Modrinth version file model.
 public struct ModrinthVersionFile: Codable, Equatable, Hashable {
     public let hashes: ModrinthVersionFileHashes
     public let url: String
@@ -364,7 +365,7 @@ public struct ModrinthVersionFile: Codable, Equatable, Hashable {
     }
 }
 
-/// Modrinth version file hashes model
+/// Modrinth version file hashes model.
 public struct ModrinthVersionFileHashes: Codable, Equatable, Hashable {
     public let sha512: String
     public let sha1: String
@@ -375,7 +376,7 @@ public struct ModrinthVersionFileHashes: Codable, Equatable, Hashable {
     }
 }
 
-/// Modrinth version dependency model
+/// Modrinth version dependency model.
 public struct ModrinthVersionDependency: Codable, Equatable, Hashable {
     public let projectId: String?
     public let versionId: String?
@@ -394,6 +395,7 @@ public struct ModrinthVersionDependency: Codable, Equatable, Hashable {
     }
 }
 
+/// Modrinth project dependency wrapper.
 public struct ModrinthProjectDependency: Codable, Hashable, Equatable {
     public let projects: [ModrinthProjectDetailVersion]
 
@@ -404,6 +406,7 @@ public struct ModrinthProjectDependency: Codable, Hashable, Equatable {
 
 // MARK: - Modrinth Project Detail V3
 
+/// Modrinth project detail V3 model.
 public struct ModrinthProjectDetailV3: Codable, Hashable, Equatable {
     public let id: String
     public let slug: String
@@ -517,6 +520,7 @@ public struct ModrinthProjectDetailV3: Codable, Hashable, Equatable {
     }
 }
 
+/// Modrinth project external link URLs.
 public struct ModrinthProjectLinkUrls: Codable, Hashable, Equatable {
     public let store: ModrinthProjectLinkUrl?
     public let wiki: ModrinthProjectLinkUrl?
@@ -524,12 +528,14 @@ public struct ModrinthProjectLinkUrls: Codable, Hashable, Equatable {
     public let site: ModrinthProjectLinkUrl?
 }
 
+/// Modrinth project external link URL entry.
 public struct ModrinthProjectLinkUrl: Codable, Hashable, Equatable {
     public let platform: String
     public let donation: Bool
     public let url: String
 }
 
+/// Modrinth project gallery item.
 public struct ModrinthProjectGalleryItem: Codable, Hashable, Equatable {
     public let url: String
     public let rawUrl: String
@@ -561,6 +567,7 @@ public struct ModrinthProjectGalleryItem: Codable, Hashable, Equatable {
     }
 }
 
+/// Modrinth Minecraft server info.
 public struct ModrinthMinecraftServerInfo: Codable, Hashable, Equatable {
     public let maxPlayers: Int?
     public let country: String?
@@ -577,6 +584,7 @@ public struct ModrinthMinecraftServerInfo: Codable, Hashable, Equatable {
     }
 }
 
+/// Modrinth Minecraft Java server info.
 public struct ModrinthMinecraftJavaServerInfo: Codable, Hashable, Equatable {
     public let address: String
     public let content: ModrinthMinecraftJavaServerContent?
@@ -593,9 +601,9 @@ public struct ModrinthMinecraftJavaServerInfo: Codable, Hashable, Equatable {
     }
 }
 
+/// Modrinth Minecraft Java server content info.
 public struct ModrinthMinecraftJavaServerContent: Codable, Hashable, Equatable {
     public let kind: String
-
     public let versionId: String?
     public let projectId: String?
     public let projectName: String?
@@ -614,12 +622,14 @@ public struct ModrinthMinecraftJavaServerContent: Codable, Hashable, Equatable {
     }
 }
 
+/// Modrinth Minecraft Java server ping info.
 public struct ModrinthMinecraftJavaServerPing: Codable, Hashable, Equatable {
     public let when: Date
     public let address: String
     public let data: ModrinthMinecraftJavaServerPingData?
 }
 
+/// Modrinth Minecraft Java server ping data.
 public struct ModrinthMinecraftJavaServerPingData: Codable, Hashable, Equatable {
     public let latency: ModrinthLatency
     public let versionName: String
@@ -638,11 +648,13 @@ public struct ModrinthMinecraftJavaServerPingData: Codable, Hashable, Equatable 
     }
 }
 
+/// Modrinth latency measurement.
 public struct ModrinthLatency: Codable, Hashable, Equatable {
     public let secs: Int
     public let nanos: Int
 }
 
+/// Modrinth Minecraft Bedrock server info.
 public struct ModrinthMinecraftBedrockServerInfo: Codable, Hashable, Equatable {
     public let address: String
 }

@@ -1,5 +1,6 @@
 import Foundation
 
+/// CurseForge search result containing a list of mods and pagination info.
 public struct CurseForgeSearchResult: Codable {
     public let data: [CurseForgeMod]
     public let pagination: CurseForgePagination?
@@ -10,6 +11,7 @@ public struct CurseForgeSearchResult: Codable {
     }
 }
 
+/// CurseForge pagination metadata.
 public struct CurseForgePagination: Codable {
     public let index: Int
     public let pageSize: Int
@@ -24,6 +26,7 @@ public struct CurseForgePagination: Codable {
     }
 }
 
+/// CurseForge mod summary returned from search endpoints.
 public struct CurseForgeMod: Codable {
     public let id: Int
     public let name: String
@@ -59,6 +62,7 @@ public struct CurseForgeMod: Codable {
     }
 }
 
+/// CurseForge mod logo / thumbnail.
 public struct CurseForgeLogo: Codable {
     public let id: Int?
     public let modId: Int?
@@ -68,6 +72,7 @@ public struct CurseForgeLogo: Codable {
     public let url: String?
 }
 
+/// CurseForge external links associated with a mod.
 public struct CurseForgeLinks: Codable {
     public let websiteUrl: String?
     public let wikiUrl: String?
@@ -75,6 +80,7 @@ public struct CurseForgeLinks: Codable {
     public let sourceUrl: String?
 }
 
+/// CurseForge mod detail returned from the mod info endpoint.
 public struct CurseForgeModDetail: Codable {
     public let id: Int
     public let name: String
@@ -95,12 +101,13 @@ public struct CurseForgeModDetail: Codable {
     public let latestFilesIndexes: [CurseForgeFileIndex]?
     public let body: String?
 
-    /// 对应的内容类型枚举（纯模型：不依赖主工程常量）
+    /// The content type derived from `classId`.
     public var contentType: CurseForgeClassId? {
         CurseForgeClassId(rawValue: classId)
     }
 }
 
+/// CurseForge file version index entry.
 public struct CurseForgeFileIndex: Codable {
     public let gameVersion: String
     public let fileId: Int
@@ -110,23 +117,23 @@ public struct CurseForgeFileIndex: Codable {
     public let modLoader: Int?
 }
 
-/// CurseForge 内容类型枚举
+/// CurseForge content type identifiers.
 public enum CurseForgeClassId: Int, CaseIterable {
-    case mods = 6           // 模组
-    case resourcePacks = 12 // 资源包
-    case shaders = 6552     // 光影
-    case datapacks = 6945   // 数据包
-    case modpacks = 4471    // 整合包（Modpacks）
+    case mods = 6
+    case resourcePacks = 12
+    case shaders = 6552
+    case datapacks = 6945
+    case modpacks = 4471
 }
 
-/// CurseForge ModLoaderType 枚举
+/// CurseForge mod loader type identifiers.
 public enum CurseForgeModLoaderType: Int, CaseIterable {
     case forge = 1
     case fabric = 4
     case quilt = 5
     case neoforge = 6
 
-    /// 根据字符串获取对应的枚举值
+    /// Returns the loader type for a given name string.
     public static func from(_ loaderName: String) -> Self? {
         switch loaderName.lowercased() {
         case "forge": return .forge
@@ -138,6 +145,7 @@ public enum CurseForgeModLoaderType: Int, CaseIterable {
     }
 }
 
+/// CurseForge category model.
 public struct CurseForgeCategory: Codable, Identifiable, Hashable {
     public let id: Int
     public let name: String
@@ -152,12 +160,12 @@ public struct CurseForgeCategory: Codable, Identifiable, Hashable {
     public let dateModified: String?
 }
 
-/// CurseForge 分类列表响应
+/// CurseForge categories list response.
 public struct CurseForgeCategoriesResponse: Codable {
     public let data: [CurseForgeCategory]
 }
 
-/// CurseForge 游戏版本
+/// CurseForge game version model.
 public struct CurseForgeGameVersion: Codable, Identifiable, Hashable {
     public let id: Int
     public let gameVersionId: Int?
@@ -173,7 +181,7 @@ public struct CurseForgeGameVersion: Codable, Identifiable, Hashable {
     public var identifier: String { versionString }
 
     public var version_type: String {
-        // CurseForge 没有明确的版本类型，根据版本号推断
+        // CurseForge does not have explicit version types; infer from version string
         if versionString.contains("snapshot") || versionString.contains("pre") || versionString.contains("rc") {
             return "snapshot"
         }
@@ -181,23 +189,27 @@ public struct CurseForgeGameVersion: Codable, Identifiable, Hashable {
     }
 }
 
-/// CurseForge 游戏版本列表响应
+/// CurseForge game versions list response.
 public struct CurseForgeGameVersionsResponse: Codable {
     public let data: [CurseForgeGameVersion]
 }
 
+/// CurseForge mod detail single-item response wrapper.
 public struct CurseForgeModDetailResponse: Codable {
     public let data: CurseForgeModDetail
 }
 
+/// CurseForge mod description response wrapper.
 public struct CurseForgeModDescriptionResponse: Codable {
     public let data: String
 }
 
+/// CurseForge files list response wrapper.
 public struct CurseForgeFilesResult: Codable {
     public let data: [CurseForgeModFileDetail]
 }
 
+/// CurseForge file detail model.
 public struct CurseForgeModFileDetail: Codable {
     public let id: Int
     public let displayName: String
@@ -252,7 +264,7 @@ public struct CurseForgeModFileDetail: Codable {
         self.authors = authors
     }
 
-    /// 从 hashes 数组中提取 algo 为 1 的 hash（SHA1）
+    /// The SHA-1 hash extracted from the hashes array (algo == 1).
     public var sha1Hash: CurseForgeHash? {
         if let hashes {
             return hashes.first { $0.algo == 1 }
@@ -261,21 +273,25 @@ public struct CurseForgeModFileDetail: Codable {
     }
 }
 
+/// CurseForge dependency relationship between files.
 public struct CurseForgeDependency: Codable {
     public let modId: Int
     public let relationType: Int
 }
 
+/// CurseForge file hash value and algorithm identifier.
 public struct CurseForgeHash: Codable {
     public let value: String
     public let algo: Int
 }
 
+/// CurseForge module metadata for a file.
 public struct CurseForgeModule: Codable {
     public let name: String
     public let fingerprint: Int
 }
 
+/// CurseForge author information.
 public struct CurseForgeAuthor: Codable {
     public let name: String
     public let url: String?
@@ -283,7 +299,7 @@ public struct CurseForgeAuthor: Codable {
 
 // MARK: - CurseForge Manifest Models
 
-/// CurseForge 整合包的 manifest.json 格式
+/// CurseForge modpack manifest.json format.
 public struct CurseForgeManifest: Codable {
     public let minecraft: CurseForgeMinecraft
     public let manifestType: String
@@ -306,19 +322,19 @@ public struct CurseForgeManifest: Codable {
     }
 }
 
-/// CurseForge manifest 中的 Minecraft 配置
+/// CurseForge manifest Minecraft configuration.
 public struct CurseForgeMinecraft: Codable {
     public let version: String
     public let modLoaders: [CurseForgeModLoader]
 }
 
-/// CurseForge manifest 中的模组加载器配置
+/// CurseForge manifest mod loader entry.
 public struct CurseForgeModLoader: Codable {
     public let id: String
     public let primary: Bool
 }
 
-/// CurseForge manifest 中的文件信息
+/// CurseForge manifest file reference.
 public struct CurseForgeManifestFile: Codable {
     public let projectID: Int
     public let fileID: Int
@@ -331,7 +347,7 @@ public struct CurseForgeManifestFile: Codable {
     }
 }
 
-/// CurseForge 整合包索引信息（转换后的格式）
+/// CurseForge modpack index information (converted format).
 public struct CurseForgeIndexInfo {
     public let gameVersion: String
     public let loaderType: String
@@ -343,8 +359,9 @@ public struct CurseForgeIndexInfo {
     public let overridesPath: String?
 }
 
-// MARK: Fingerprints Models
+// MARK: - Fingerprint Models
 
+/// CurseForge fingerprint match request.
 public struct CurseForgeFingerprintMatchesRequest: Codable {
     public let fingerprints: [UInt32]
 
@@ -353,6 +370,7 @@ public struct CurseForgeFingerprintMatchesRequest: Codable {
     }
 }
 
+/// CurseForge fingerprint match response.
 public struct CurseForgeFingerprintMatchesResponse: Codable {
     public let data: CurseForgeFingerprintMatchesData
 
@@ -361,6 +379,7 @@ public struct CurseForgeFingerprintMatchesResponse: Codable {
     }
 }
 
+/// CurseForge fingerprint match result data.
 public struct CurseForgeFingerprintMatchesData: Codable {
     public let exactMatches: [CurseForgeFingerprintMatch]?
     public let partialMatches: [CurseForgeFingerprintMatch]?
@@ -374,6 +393,7 @@ public struct CurseForgeFingerprintMatchesData: Codable {
     }
 }
 
+/// CurseForge fingerprint match entry.
 public struct CurseForgeFingerprintMatch: Codable {
     public let file: CurseForgeFingerprintFile?
 
@@ -382,11 +402,12 @@ public struct CurseForgeFingerprintMatch: Codable {
     }
 }
 
+/// CurseForge fingerprint file information.
 public struct CurseForgeFingerprintFile: Codable {
     public let modId: Int
     public let id: Int
 
-    public init(modId: Int,id: Int) {
+    public init(modId: Int, id: Int) {
         self.modId = modId
         self.id = id
     }
