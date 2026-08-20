@@ -100,6 +100,11 @@ public struct CurseForgeModDetail: Codable {
     public let latestFiles: [CurseForgeModFileDetail]?
     public let latestFilesIndexes: [CurseForgeFileIndex]?
     public let body: String?
+
+    /// The content type derived from `classId`.
+    public var contentType: CurseForgeClassId? {
+        CurseForgeClassId(rawValue: classId)
+    }
 }
 
 /// CurseForge file version index entry.
