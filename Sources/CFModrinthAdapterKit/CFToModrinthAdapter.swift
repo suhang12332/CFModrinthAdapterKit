@@ -14,68 +14,20 @@ public enum CFToModrinthAdapter {
         _ cf: CurseForgeModDetail,
         descriptionHTML: String = ""
     ) -> ModrinthProjectDetail? {
-        let dateFormatter = ISO8601DateFormatter()
-        dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-
-        let publishedDate: Date
-        if let dateCreated = cf.dateCreated,
-           let parsed = dateFormatter.date(from: dateCreated) {
-            publishedDate = parsed
-        } else {
-            publishedDate = Date()
-        }
-
-        let updatedDate: Date
-        if let dateModified = cf.dateModified,
-           let parsed = dateFormatter.date(from: dateModified) {
-            updatedDate = parsed
-        } else {
-            updatedDate = Date()
-        }
+        let publishedDate = parseDate(cf.dateCreated)
+        let updatedDate = parseDate(cf.dateModified)
 
         // Extract game versions from latestFilesIndexes
         var gameVersions: [String] = []
         if let indexes = cf.latestFilesIndexes {
-            let allVersions = Set(indexes.map { $0.gameVersion })
-            gameVersions = Array(allVersions)
+            gameVersions = Array(Set(indexes.map { $0.gameVersion }))
         }
 
         // Extract loaders from latestFilesIndexes
-        var loaders: [String] = []
-        if let indexes = cf.latestFilesIndexes {
-            let loaderTypes = Set(indexes.compactMap { $0.modLoader })
-            for loaderType in loaderTypes {
-                if let loader = CurseForgeModLoaderType(rawValue: loaderType) {
-                    switch loader {
-                    case .forge:
-                        loaders.append("forge")
-                    case .fabric:
-                        loaders.append("fabric")
-                    case .quilt:
-                        loaders.append("quilt")
-                    case .neoforge:
-                        loaders.append("neoforge")
-                    }
-                }
-            }
-        }
+        var loaders = loaderNames(from: cf.latestFilesIndexes)
 
         // Infer the project type string from classId
-        let projectType: String
-        switch cf.classId {
-        case CurseForgeClassId.mods.rawValue:
-            projectType = "mod"
-        case CurseForgeClassId.resourcePacks.rawValue:
-            projectType = "resourcepack"
-        case CurseForgeClassId.shaders.rawValue:
-            projectType = "shader"
-        case CurseForgeClassId.datapacks.rawValue:
-            projectType = "datapack"
-        case CurseForgeClassId.modpacks.rawValue:
-            projectType = "modpack"
-        default:
-            projectType = "mod"
-        }
+        let projectType = projectType(for: cf.classId)
 
         // Populate default loaders when none are present
         if loaders.isEmpty {
@@ -87,16 +39,13 @@ public enum CFToModrinthAdapter {
         }
 
         // Extract version ID list
-        var versions: [String] = []
-        if let files = cf.latestFiles {
-            versions = files.map { String($0.id) }
-        }
+        let versions = versionIDs(from: cf.latestFiles)
 
         // Extract categories
         let categories = cf.categories.map { $0.slug }
 
         // Extract icon URL
-        let iconUrl = cf.logo?.url ?? cf.logo?.thumbnailUrl
+        let iconUrl = iconURL(for: cf.logo)
 
         // CurseForge rarely provides explicit license information; use a placeholder
         let license = License(id: "unknown", name: "Unknown", url: nil)
@@ -147,16 +96,7 @@ public enum CFToModrinthAdapter {
         _ cfFile: CurseForgeModFileDetail,
         projectId: String
     ) -> ModrinthProjectDetailVersion? {
-        let dateFormatter = ISO8601DateFormatter()
-        dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-
-        let publishedDate: Date
-        if !cfFile.fileDate.isEmpty,
-           let parsed = dateFormatter.date(from: cfFile.fileDate) {
-            publishedDate = parsed
-        } else {
-            publishedDate = Date()
-        }
+        let publishedDate = parseDate(cfFile.fileDate)
 
         // Treat all versions as release type
         let versionType = "release"
@@ -194,26 +134,22 @@ public enum CFToModrinthAdapter {
         let downloadUrl = cfFile.downloadUrl ?? fallbackDownloadUrl(fileId: cfFile.id, fileName: cfFile.fileName).absoluteString
 
         // Extract hashes: prefer the hashes array, fall back to the single hash field
-        let hashes: ModrinthVersionFileHashes
+        var sha512 = ""
+        var sha1 = ""
         if let hashesArray = cfFile.hashes, !hashesArray.isEmpty {
-            let sha1Hash = hashesArray.first { $0.algo == 1 }
-            let sha512Hash = hashesArray.first { $0.algo == 2 }
-            hashes = ModrinthVersionFileHashes(
-                sha512: sha512Hash?.value ?? "",
-                sha1: sha1Hash?.value ?? ""
-            )
+            sha1 = hashesArray.first { $0.algo == 1 }?.value ?? ""
+            sha512 = hashesArray.first { $0.algo == 2 }?.value ?? ""
         } else if let hash = cfFile.hash {
             switch hash.algo {
             case 1:
-                hashes = ModrinthVersionFileHashes(sha512: "", sha1: hash.value)
+                sha1 = hash.value
             case 2:
-                hashes = ModrinthVersionFileHashes(sha512: hash.value, sha1: "")
+                sha512 = hash.value
             default:
-                hashes = ModrinthVersionFileHashes(sha512: "", sha1: "")
+                break
             }
-        } else {
-            hashes = ModrinthVersionFileHashes(sha512: "", sha1: "")
         }
+        let hashes = ModrinthVersionFileHashes(sha512: sha512, sha1: sha1)
 
         let files: [ModrinthVersionFile] = [
             ModrinthVersionFile(
@@ -259,30 +195,13 @@ public enum CFToModrinthAdapter {
     ) -> ModrinthResult {
         let hits: [ModrinthProject] = cfResult.data.compactMap { cfMod in
             // Determine the project type
-            let projectType: String
-            if let classId = cfMod.classId,
-               let type = CurseForgeClassId(rawValue: classId) {
-                switch type {
-                case .mods:
-                    projectType = "mod"
-                case .resourcePacks:
-                    projectType = "resourcepack"
-                case .shaders:
-                    projectType = "shader"
-                case .datapacks:
-                    projectType = "datapack"
-                case .modpacks:
-                    projectType = "modpack"
-                }
-            } else {
-                projectType = "mod"
-            }
+            let projectType = projectType(for: cfMod.classId ?? CurseForgeClassId.mods.rawValue)
 
             // Extract version ID list
-            var versions: [String] = []
-            if let files = cfMod.latestFiles {
-                versions = files.map { String($0.id) }
-            }
+            let versions = versionIDs(from: cfMod.latestFiles)
+
+            // Extract categories
+            let categories = cfMod.categories?.map { $0.slug } ?? []
 
             return ModrinthProject(
                 projectId: "cf-\(cfMod.id)",
@@ -291,12 +210,12 @@ public enum CFToModrinthAdapter {
                 author: cfMod.authors?.first?.name ?? "Unknown",
                 title: cfMod.name,
                 description: cfMod.summary,
-                categories: cfMod.categories?.map { $0.slug } ?? [],
-                displayCategories: cfMod.categories?.map { $0.slug } ?? [],
+                categories: categories,
+                displayCategories: categories,
                 versions: versions,
                 downloads: cfMod.downloadCount ?? 0,
                 follows: 0,
-                iconUrl: cfMod.logo?.url ?? cfMod.logo?.thumbnailUrl,
+                iconUrl: iconURL(for: cfMod.logo),
                 license: "",
                 clientSide: "optional",
                 serverSide: "optional",
@@ -315,6 +234,51 @@ public enum CFToModrinthAdapter {
             limit: limit,
             totalHits: totalHits
         )
+    }
+
+    // MARK: - Private helpers
+
+    /// Parses an ISO8601 date string, falling back to the current date.
+    private static func parseDate(_ string: String?) -> Date {
+        guard let string else { return Date() }
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter.date(from: string) ?? Date()
+    }
+
+    /// Maps a CurseForge classId to a Modrinth project type string.
+    private static func projectType(for classId: Int) -> String {
+        switch classId {
+        case CurseForgeClassId.mods.rawValue:
+            return "mod"
+        case CurseForgeClassId.resourcePacks.rawValue:
+            return "resourcepack"
+        case CurseForgeClassId.shaders.rawValue:
+            return "shader"
+        case CurseForgeClassId.datapacks.rawValue:
+            return "datapack"
+        case CurseForgeClassId.modpacks.rawValue:
+            return "modpack"
+        default:
+            return "mod"
+        }
+    }
+
+    /// Extracts Modrinth version IDs from a CurseForge file list.
+    private static func versionIDs(from files: [CurseForgeModFileDetail]?) -> [String] {
+        files?.map { String($0.id) } ?? []
+    }
+
+    /// Maps CurseForge loader raw values to Modrinth loader names.
+    private static func loaderNames(from indexes: [CurseForgeFileIndex]?) -> [String] {
+        guard let indexes else { return [] }
+        let loaderTypes = Set(indexes.compactMap { $0.modLoader })
+        return loaderTypes.compactMap { CurseForgeModLoaderType(rawValue: $0)?.name }
+    }
+
+    /// Extracts the primary icon URL from a CurseForge logo, falling back to the thumbnail.
+    private static func iconURL(for logo: CurseForgeLogo?) -> String? {
+        logo?.url ?? logo?.thumbnailUrl
     }
 
     /// Extracts plain text from an HTML string for use as a short description.

@@ -100,11 +100,6 @@ public struct CurseForgeModDetail: Codable {
     public let latestFiles: [CurseForgeModFileDetail]?
     public let latestFilesIndexes: [CurseForgeFileIndex]?
     public let body: String?
-
-    /// The content type derived from `classId`.
-    public var contentType: CurseForgeClassId? {
-        CurseForgeClassId(rawValue: classId)
-    }
 }
 
 /// CurseForge file version index entry.
@@ -132,6 +127,16 @@ public enum CurseForgeModLoaderType: Int, CaseIterable {
     case fabric = 4
     case quilt = 5
     case neoforge = 6
+
+    /// The Modrinth-compatible loader name.
+    public var name: String {
+        switch self {
+        case .forge: return "forge"
+        case .fabric: return "fabric"
+        case .quilt: return "quilt"
+        case .neoforge: return "neoforge"
+        }
+    }
 
     /// Returns the loader type for a given name string.
     public static func from(_ loaderName: String) -> Self? {
@@ -262,14 +267,6 @@ public struct CurseForgeModFileDetail: Codable {
         self.projectId = projectId
         self.projectName = projectName
         self.authors = authors
-    }
-
-    /// The SHA-1 hash extracted from the hashes array (algo == 1).
-    public var sha1Hash: CurseForgeHash? {
-        if let hashes {
-            return hashes.first { $0.algo == 1 }
-        }
-        return hash
     }
 }
 
