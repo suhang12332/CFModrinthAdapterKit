@@ -34,7 +34,7 @@ public enum ModrinthToCurseForgeSearchAdapter {
     ///   - categories: A list of behavior/function category names.
     ///   - resolutions: A list of resource pack resolutions (only applies to `resourcepack` type).
     ///   - loaders: A list of mod loader names (e.g. `"forge"`, `"fabric"`, `"quilt"`, `"neoforge"`).
-    ///   - query: The search query string.
+    ///   - query: The search query string (normalized to lowercase words joined by `-`).
     /// - Returns: A ``SearchParams`` structure ready for CurseForge URL construction.
     /// - Note: CurseForge API limits are automatically enforced:
     ///   - `gameVersions`: maximum 4 items
@@ -94,8 +94,12 @@ public enum ModrinthToCurseForgeSearchAdapter {
             modLoaderTypes = nil
         }
 
-        // 5. Search filter: treat empty string as unset; otherwise pass through as-is
-        let searchFilter = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        // 5. Search filter: normalize to lowercase words joined by "-"; empty string is treated as unset.
+        //    e.g. "Sodium Extra" -> "sodium-extra"
+        let searchFilter = query
+            .lowercased()
+            .split(whereSeparator: \.isWhitespace)
+            .joined(separator: "-")
         let normalizedSearchFilter = searchFilter.isEmpty ? nil : searchFilter
 
         return SearchParams(
